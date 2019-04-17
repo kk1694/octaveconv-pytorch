@@ -35,6 +35,8 @@ def tupify(layer):
 
 def tupify_bn(layer, alpha):
     
+    '''Turns a batch norm layer into one that operates on Tensortuple'''
+    
     if hasattr(layer, 'tupified'):
         if layer.tupified: return layer
     
@@ -48,17 +50,11 @@ def tupify_bn(layer, alpha):
         def forward(self, x):
             return TensorTuple(self.inst1(x.hf), self.inst2(x.lf))        
     return Tuplefied
-    
-def get_scale_fac(hf_shape, lf_shape):
-    bs_hf, ch_hf, h_hf, w_hf = hf_shape
-    bs_lf, ch_lf, h_lf, w_lf = lf_shape
-    
-    assert abs((h_hf / h_lf) - (w_hf / w_lf)) < 1e-3, 'Use square images, can not handle unequal upsampling'
-    scale = h_hf / h_lf
-    
-    return scale
 
 class OctConv(nn.Module):
+    
+    '''Main layer replacing nn.Conv2d'''
+    
     def __init__(self, in_channels, out_channels, alpha, **kwargs):
         
         super(OctConv, self).__init__()        
