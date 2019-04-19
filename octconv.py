@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from functools import partial
@@ -157,11 +158,9 @@ class OctBasicBlock(nn.Module):
         if isinstance(out, TensorTuple):    
             out += identity
         else:
-            pass
-            # This is the case of the last conv layer
-            # I could interpolate identity.lf to high frequency,
-            # but I think it might be best to keep the last block
-            # without the skip connection. Will add the option later.        
+            hf, lf = identity.hf, identity.lf
+            lf = F.interpolate(lf, size=hf.shape[2:], mode='nearest')
+            out += torch.cat([hf, lf], dim=1)     
         
         out = self.relu(out)
 
@@ -212,11 +211,10 @@ class OctBottleneck(nn.Module):
         if isinstance(out, TensorTuple):    
             out += identity
         else:
-            pass
-            # This is the case of the last conv layer
-            # I could interpolate identity.lf to high frequency,
-            # but I think it might be best to keep the last block
-            # without the skip connection. Will add the option later.        
+            hf, lf = identity.hf, identity.lf
+            lf = F.interpolate(lf, size=hf.shape[2:], mode='nearest')
+            out += torch.cat([hf, lf], dim=1)
+            
             
         out = self.relu(out)
 
